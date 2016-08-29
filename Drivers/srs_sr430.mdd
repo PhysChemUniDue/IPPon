@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MATLABInstrumentDriver>
+   <FileVersion>2.42</FileVersion>
+   <DriverName>C:\Dokumente und Einstellungen\Admin\Eigene Dateien\MATLAB\drivers\srs_sr430.mdd</DriverName>
+   <DriverType>MATLAB interface object</DriverType>
+   <InstrumentType>Scaler</InstrumentType>
+   <InstrumentManufacturer>Stanford Research Systems</InstrumentManufacturer>
+   <InstrumentModel>SR 430</InstrumentModel>
+   <InstrumentVersion>1.0</InstrumentVersion>
+   <Identify>*IDN?</Identify>
+   <Reset>*RST</Reset>
+   <Selftest>*TST?</Selftest>
+   <Error>ERRE?</Error>
+   <CreateInitCode>
+      <Code>function init(obj)
+% This function is called after the object is created.
+% OBJ is the device object.
+% End of function definition - DO NOT EDIT
+
+% Get the interface object and disconnect from instrument.
+g = obj.Interface;
+fclose(g);</Code>
+   </CreateInitCode>
+   <ConnectInitCode>
+      <Type>InstrumentCommand</Type>
+   </ConnectInitCode>
+   <CleanupCode>
+      <Type>InstrumentCommand</Type>
+   </CleanupCode>
+   <GroupInfo>
+      <Group>
+         <Name>parent</Name>
+         <Description/>
+         <Command/>
+         <Size>1</Size>
+         <Mappings>
+            <ChannelMap Command="parent1" Index="1"/>
+         </Mappings>
+         <PropertyInfo>
+            <Property>
+               <Name>BinClock</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>BCLK</ConfigureCommand>
+                     <QueryCommand>BCLK?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>BinsPerRecord</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>BREC</ConfigureCommand>
+                     <QueryCommand>BREC?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>BinWidth</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>BWTH</ConfigureCommand>
+                     <QueryCommand>BWTH?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>DiscrSlope</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>DCSL</ConfigureCommand>
+                     <QueryCommand>DCSL?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>DiscrThreshLevel</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>DCLV</ConfigureCommand>
+                     <QueryCommand>DCLV?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>RecordsPerScan</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>RSCN</ConfigureCommand>
+                     <QueryCommand>RSCN?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>TriggerLevel</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>TRLV</ConfigureCommand>
+                     <QueryCommand>TRLV?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>TriggerOffset</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>BOFF</ConfigureCommand>
+                     <QueryCommand>BOFF?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+            <Property>
+               <Name>TriggerSlope</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand>TRSL</ConfigureCommand>
+                     <QueryCommand>TRSL?</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue>0</DefaultValue>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+         </PropertyInfo>
+         <MethodInfo>
+            <Method>
+               <Name>clear</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="CLRS" Output="false"/>
+                  </Commands>
+               </Code>
+               <Description>The CLRS command resets the unit to the CLEAR state. All data accu-
+mulated will be lost and reset to zero. The CLRS command may be used
+at any time, even while a scan is in progress. The effect is the same as
+pressing the [STOP] key twice in succession.</Description>
+            </Method>
+            <Method>
+               <Name>getBinWidth</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>MCode</Type>
+               <Code>
+                  <MCode>function binWidth = getBinWidth(obj)
+% For group functions, OBJ is the group object. For
+% base device functions, OBJ is the device object.
+
+% Define possible bin widths in nanoseconds
+binWidths = [
+    5
+    40
+    80
+    160
+    320
+    640
+    1280
+    2560
+    5120
+    10240
+    20480
+    40960
+    81920
+    163840
+    327680
+    655360
+    1310700
+    2621400
+    5242900
+    10486000];
+
+% Get the bin width integer from the instrument (0 corresponds to 5 ns, 1
+% to 40 ns, etc.)
+binWidthIdx = obj.BinWidth;
+
+% Get bin width in nanoseconds (Matlab indices start with 1)
+binWidth = binWidths( binWidthIdx+1 );</MCode>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>getData</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>MCode</Type>
+               <Code>
+                  <MCode>function processedData = getData(obj)
+% For group functions, OBJ is the group object. For
+% base device functions, OBJ is the device object.
+
+% Get Interface
+g = obj.Interface;
+fclose(g);
+
+% Get bins per record
+binsPerRecord = obj.BinsPerRecord*1024;
+
+% Original Buffer Size
+origBufferSize = g.InputBufferSize;
+
+% Buffer size must match exactly the number of bytes that are returned plus
+% the last line feed.
+newBufferSize = binsPerRecord*2;
+
+% Close the interface
+fclose(g);
+% Set new buffer size
+g.InputBufferSize = newBufferSize;
+
+% Reestablish connection
+%g = gpib('ni',0,8);
+%obj = icdevice('srs_sr430.mdd', g);
+connect(obj);
+
+% Read data
+data = invoke( obj, 'readData' );
+
+% Close the interface
+fclose(g);
+% Reset Buffer Size
+g.InputBufferSize = origBufferSize;
+
+% Process the data
+% The data is sent low byte first and the high byte after that
+processedData = zeros( 1,numel( data )/2 );
+for i=1:numel( processedData )
+    processedData(i) = data(i*2-1) + data(i*2)*10;
+end</MCode>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>pauseScan</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="PAUS" Output="false"/>
+                  </Commands>
+               </Code>
+               <Description>The PAUS command pauses a scan in progress. If a scan is not in
+progress, the PAUS command is ignored. This is the same as pressing
+the [STOP] key while a scan is in progress. The unit will be in the
+PAUSE state.</Description>
+            </Method>
+            <Method>
+               <Name>readData</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="BINB?" Format="uint8" Output="true" ReadOutputAs="Binary"/>
+                  </Commands>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>scanStatus</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="SCAN?" Format="numeric" Output="true" ReadOutputAs="ASCII"/>
+                  </Commands>
+               </Code>
+               <Description>The SCAN? query reads the number of records which have been accu-
+mulated so far.  A host program can use the SCAN? query to determine
+when a scan is finished. (The status bytes may also be used).</Description>
+            </Method>
+            <Method>
+               <Name>startScan</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="SSCN" Output="false"/>
+                  </Commands>
+               </Code>
+               <Description>The SSCN command has the same effect as pressing the [START] key.
+The SSCN command only has an effect when the unit is paused or clear.</Description>
+            </Method>
+         </MethodInfo>
+      </Group>
+   </GroupInfo>
+</MATLABInstrumentDriver>
