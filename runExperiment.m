@@ -48,41 +48,43 @@ data = zeros( obj.BinsPerRecord*1024, Ntotal, 2, 'int16' ) * nan;
 triggerTime = zeros( 1, Ntotal )*nan;
 
 %% Initial shutter status
-% Shutter status equals 1 is open state 2 is closed
+% Shutter status equals 1 is open state 0 is closed
 ShutterStatus = 1;
 
 %% Create data acquisition session for shutter control
 
 % Create new session
 s = daq.createSession( 'ni' );
-% Continuous session
-s.IsContinuous = true;
 
-% Listener for feeding new output data
-lh(1) = addlistener( s, 'DataRequired', ...
-    @(src,event) feedShutter( event ) );
+% Load Channel Definitions
+load( [pwd, '/Settings/ChannelDefinitions.mat'] )
+
+% Add Channels
+addDigitalChannel( s, Shutter.Board, Shutter.Channel, 'OutputOnly' );
 
 %% Main Loop
+
+h = waitbar( 0, 'Initializing...' );
 
 for i=1:Ntotal
     
     % Change Shutter Status
     if ShutterStatus == 1
-        ShutterStatus = 2;
+        ShutterStatus = 0;
     else
         ShutterStatus = 1;
     end
     
     % Apply shutter status
-    feedShutter( event )
+    outputSingleScan( s, ShutterStatus )
     
     % Start Scan
-    invoke( obj, 'startScan' );
+    invoke( obj, 'startScan' );    
     
-    fprintf( 'Ready...\t' )
+    waitbar( i/Ntotal, h, 'Ready...' )
     
-    while scanStatus < Nshots
-        tic
+    tic
+    while scanStatus < Nshots        
         % Wait until scans are finished
         
         % Get current number of scans
@@ -91,13 +93,12 @@ for i=1:Ntotal
     end
     triggerTime(i) = toc;
     
-    fprintf( '%g/%g\n', i, Ntotal )
+    waitbar( i/Ntotal, h, 'Get Data...' )
     
     % Read data
-    [data(:,i,ShutterStatus),~,settings] = sr430_readData( obj,0 );
+    [data(:,i,ShutterStatus+1),~,settings] = SR430.readData( obj,0 );
     
     % Connect and Clear SR430
-    connect( obj )
     invoke( obj, 'clear' );
     
     % Reset scan status
@@ -105,7 +106,12 @@ for i=1:Ntotal
     
 end
 
+%% Close the shutter when finished
+outputSingleScan( s,0 )
+
 %% Save
+
+waitbar( i/Ntotal, h, 'Saving...' )
 
 % Save data
 SR430.saveData( data(:,:,1), settings, 0, 0, [PathName, 'so_', FileName] )
@@ -117,11 +123,14 @@ disconnect(obj);
 instrreset
 
 % Save all the variables as matlab binary
-save( [FolderName, FileName, '_ExperimentalData.mat' ])
+save( [PathName, FileName, '_ExperimentalData.mat' ])
 
 %% Display experimental results
 
+waitbar( i/Ntotal, h, 'Processing...' )
+
 % Sum up all the counts for each singe shot
+countsSum = zeros( Ntotal,2 );
 for j=1:2
     % Loop throught shutter states
     for i=1:Ntotal
@@ -135,6 +144,10 @@ end
 
 countsAccu = squeeze( sum( data, 2 ) );
 
+% Generate time data from bin width
+dt = settings.BinWidth;
+timeData = dt:dt:dt*settings.BinsPerRecord;
+
 figure;hold on
 p(1) = stairs( timeData, countsAccu(:,1) );
 p(1).DisplayName = 'Shutter Open';
@@ -146,39 +159,21 @@ title( 'Accumulated Signal' )
 legend( 'show' )
 
 figure
-p(3) = plot( countsSum, 'o' );
+p(3:4) = plot( countsSum, 'o' );
 xlabel( 'Shot Number' )
 ylabel( 'Total Counts' )
 title( 'Integral per Shot' )
 
 figure
-p(4) = plot( triggerTime, 'o-' );
+p(5) = plot( triggerTime, 'o-' );
+p(5).DisplayName = 'Trigger Time';
 xlabel( 'Shot Number' )
 ylabel( 'Time Waited for Trigger [s]' )
 title( 'Trigger Time' )
 
 %% Output dialog
+waitbar( i/Ntotal, h, 'Done.' )
 disp('Experiment Done!')
-
-%%
-%%%%%%%%%%%%%%%%%%%%%%
-% Subfunctions
-%%%%%%%%%%%%%%%%%%%%%%
-
-    function feedShutter( ~ )
-        % Give shutter new data
-        
-        % Generate output data
-        if ShutterStatus == 1
-            outputData = ones( 1000, 1 )*5;
-        else
-            outputData = zeros( 1000, 1 );
-        end
-        
-        % Queue output data
-        queueOutputData( s, outputData )
-        
-    end
 
 end
 

@@ -18,6 +18,10 @@ end
 Device01 = devices(1);
 Device02 = devices(2);
 
+
+
+
+
 %% Configure analog inputs
 % The subsystem index for analog inputs on the board is 1
 AnalogIn = 1;
@@ -34,16 +38,6 @@ Temperature.Channel = ...
     Device02.Subsystems(AnalogIn).ChannelNames{AnalogInID + 1};
 Temperature.Board = Device02.ID;
 
-%% Delta Elektronika SM7020 Current Monitor
-% Monitors the Current output of the SM 7020.
-
-% Define channel index
-AnalogInID = 5;
-% Set channel ID (index + 1 because Matlab indices start with 1 while the
-% board starts with 0)
-SM7020_Iin.Channel = ...
-    Device02.Subsystems(AnalogIn).ChannelNames{AnalogInID + 1};
-SM7020_Iin.Board = Device02.ID;
 
 
 
@@ -65,22 +59,35 @@ QMSSet.Channel = ...
     Device02.Subsystems(AnalogOut).ChannelNames{AnalogOutID + 1};
 QMSSet.Board = Device02.ID;
 
+
+
+
+
+
+%% Configure Digital IOs
+% The subsystem index for digital IO on the board is 3
+DigitalIO = 3;
+
 %% Shutter Control
-% Controls the output voltage of the Delta Elektronika SM 7020 (range for
-% remote controlling is 0 - 5 V)
+% Controls the shutter
 
 % Define channel index
-AnalogOutID = 0;
+DigitalIOID = 0;
 % Set Channel
 % Set channel IDs (index + 1 because Matlab indices start with 1 while the
 % board starts with 0)
 Shutter.Channel = ...
-    Device02.Subsystems(AnalogOut).ChannelNames{AnalogOutID + 1};
+    Device02.Subsystems(DigitalIO).ChannelNames{DigitalIOID + 1};
 Shutter.Board = Device02.ID;
+
+
+
+
+
 
 %% Save as file
 % Save the settings in a .mat file in the same folder
-save( [pwd '/Settings/ChannelDefinitions.mat'], ...
+save( [pwd '/ChannelDefinitions.mat'], ...
     'QMSSet', ...
     'Shutter', ...
     'Temperature' )

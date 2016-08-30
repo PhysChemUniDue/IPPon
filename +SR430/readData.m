@@ -4,40 +4,35 @@ function [processedData,timeData,settings] = readData( obj,doPrint )
 % Get instrument settings
 settings = SR430.getSettings( obj );
 
-%% Import Data
-
 if doPrint
     fprintf( 'Importing data...\n' )
 end
 
 % Get Interface
 g = obj.Interface;
-fclose(g);
-
-% Original Buffer Size
-origBufferSize = g.InputBufferSize;
-
-% Buffer size must match exactly the number of bytes that are returned plus
-% the last line feed.
-newBufferSize = settings.BinsPerRecord*2;
-
-% Close the interface
-fclose(g);
-% Set new buffer size
-g.InputBufferSize = newBufferSize;
-
-% Reestablish connection
-%g = gpib('ni',0,8);
-%obj = icdevice('srs_sr430.mdd', g);
-connect(obj);
+if g.InputBufferSize ~= settings.BinsPerRecord*2
+    % Set correct buffer size
+    fclose(g);
+    
+    % Original Buffer Size
+    origBufferSize = g.InputBufferSize;
+    
+    % Buffer size must match exactly the number of bytes that are returned plus
+    % the last line feed.
+    newBufferSize = settings.BinsPerRecord*2;
+    
+    % Close the interface
+    fclose(g);
+    % Set new buffer size
+    g.InputBufferSize = newBufferSize;
+    
+    % Reestablish connection
+    connect(obj);
+    
+end
 
 % Read data
 data = invoke( obj, 'readData' );
-
-% Close the interface
-fclose(g);
-% Reset Buffer Size
-g.InputBufferSize = origBufferSize;
 
 if doPrint
     fprintf( '\tImported %g data points\n', numel( data )/2 )
