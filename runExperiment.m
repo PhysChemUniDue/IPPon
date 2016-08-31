@@ -168,7 +168,7 @@ ylabel( 'Counts' )
 title( 'Accumulated Signal' )
 legend( 'show' )
 
-figure
+figure; hold on
 p(3:4) = plot( countsSum, 'o' );
 xlabel( 'Shot Number' )
 ylabel( 'Total Counts' )
