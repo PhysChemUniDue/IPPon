@@ -1,8 +1,5 @@
-function [processedData,timeData,settings] = readData( obj,doPrint )
+function [processedData] = readData( obj,numBins,doPrint )
 % Reads data from SRS SR430
-
-% Get instrument settings
-settings = SR430.getSettings( obj );
 
 if doPrint
     fprintf( 'Importing data...\n' )
@@ -10,16 +7,13 @@ end
 
 % Get Interface
 g = obj.Interface;
-if g.InputBufferSize ~= settings.BinsPerRecord*2
+if g.InputBufferSize ~= numBins*2
     % Set correct buffer size
     fclose(g);
     
-    % Original Buffer Size
-    origBufferSize = g.InputBufferSize;
-    
     % Buffer size must match exactly the number of bytes that are returned plus
     % the last line feed.
-    newBufferSize = settings.BinsPerRecord*2;
+    newBufferSize = numBins*2;
     
     % Close the interface
     fclose(g);
@@ -68,9 +62,5 @@ dec(end) = [];
 
 % Define Processed data
 processedData = dec';
-
-% Make the time data from the bin width
-w = settings.BinWidth;
-timeData = w:w:w*numel( processedData );
 
 end

@@ -1,4 +1,4 @@
-function runExperiment( mass, range, Nshots, Ntotal )
+function data = runExperiment( mass, range, Nshots, Ntotal )
 %RUNEXPERIMENT( mass, range ) Starts the IR promoted photodesorption 
 %experiment
 %   mass: Mass of the particle in amu that shall be detected by the QMS
@@ -15,6 +15,7 @@ if ~FilterIndex
     % User pressed cancel button
     disp( 'No file selected.' )
     disp( 'Cancelled Experiment' )
+    data = [];
     return
 end
 
@@ -39,13 +40,22 @@ invoke( obj, 'clear' );
 % Set number of shots
 obj.RecordsPerScan = Nshots;
 
+% Get the settings of the SR430 - We need this to generate a time data
+% array for live plotting during the measurement
+ScalerSettings = SR430.getSettings( obj );
+% Get the bin width
+dt = ScalerSettings.BinWidth;
+% Calculate the bin time Array
+timeData = dt:dt:ScalerSettings.BinsPerRecord*dt;
+
 % Set initial value for scan status
 scanStatus = 0;
 
 % Initialize data matrix
 data = zeros( obj.BinsPerRecord*1024, Ntotal, 2, 'int16' ) * nan;
 
-triggerTime = zeros( 1, Ntotal )*nan;
+% Initialize trigger time array
+triggerTime = zeros( 1, Ntotal*2 )*nan;
 
 %% Initial shutter status
 % Shutter status equals 1 is open state 0 is closed. Shutter status is
@@ -64,12 +74,27 @@ load( [pwd, '/Settings/ChannelDefinitions.mat'] )
 % Add Digital Output channel for the shutter
 addDigitalChannel( s, Shutter.Board, Shutter.Channel, 'OutputOnly' );
 
+%% Prepare figure for live plot
+countsAccu = squeeze( sum( data, 2 ) );
+figure;
+for i=1:2
+    subplot(2,1,i)
+    lp(i) = stairs( timeData*1e-6, countsAccu(:,i) );
+    xlabel( 'Time [ms]' )
+    ylabel( 'Counts' )
+    if i==1
+        title( 'Shutter Closed' )
+    else
+        title( 'Shutter Open' )
+    end
+end
+
 %% Main Loop
 
 % Create a waitbar
 h = waitbar( 0, 'Initializing...' );
 
-for i=1:Ntotal
+for i=1:0.5:Ntotal+1
     
     % Change Shutter Status
     if ShutterStatus == 1
@@ -78,18 +103,23 @@ for i=1:Ntotal
     else
         % Otherwise open the shutter
         ShutterStatus = 1;
-        % Reset the counter to it's previous value, so that both for the
-        % blind measurement and the actual measurement there are Nshots
-        % data points. In addition we do not want to skip entries in the
-        % data matrix.
-        i = i-1;
     end
     
     % Apply shutter status
     outputSingleScan( s, ShutterStatus )
     
     % Start Scan
-    invoke( obj, 'startScan' );    
+    invoke( obj, 'startScan' );
+    
+    for k=1:2
+        % Update live data
+        
+        % Accumulate counts
+        countsAccu = squeeze( sum( data, 2 ) );
+        
+        lp(k).YData = countsAccu(:,k);
+        
+    end
     
     waitbar( i/Ntotal, h, 'Ready...' )
     
@@ -99,15 +129,23 @@ for i=1:Ntotal
         
         % Get current number of scans
         scanStatus = invoke( obj, 'scanStatus' );
+        % Pausing seems to prevent a timeout of the GPIB connection. Might
+        % also be related to the readout malfunction case (see below).
+        pause(0.001)
         
     end
-    triggerTime(i) = toc;
+    triggerTime(floor( i )*2-(1-ShutterStatus)) = toc;
     
     waitbar( i/Ntotal, h, 'Get Data...' )
     
     % Read data
-    [data(:,i,ShutterStatus+1),~,settings] = SR430.readData( obj,0 );
-    
+    [dataAdd] = SR430.readData( obj,ScalerSettings.BinsPerRecord,0 );
+    if numel( dataAdd ) ~= ScalerSettings.BinsPerRecord
+        dataAdd = zeros( 1, ScalerSettings.BinsPerRecord );
+        disp( 'Readout malfunction' )
+    end
+    data(:,floor( i ),ShutterStatus+1) = dataAdd;
+
     % Connect and Clear SR430
     invoke( obj, 'clear' );
     
@@ -124,8 +162,8 @@ outputSingleScan( s,0 )
 waitbar( i/Ntotal, h, 'Saving...' )
 
 % Save data
-SR430.saveData( data(:,:,1), settings, 0, 0, [PathName, 'so_', FileName] )
-SR430.saveData( data(:,:,2), settings, 0, 0, [PathName, 'sc_', FileName] )
+SR430.saveData( data(:,:,1), ScalerSettings, 0, 0, [PathName, 'so_', FileName] )
+SR430.saveData( data(:,:,2), ScalerSettings, 0, 0, [PathName, 'sc_', FileName] )
 
 % Disconnect
 disconnect(obj);
@@ -155,8 +193,8 @@ end
 countsAccu = squeeze( sum( data, 2 ) );
 
 % Generate time data from bin width
-dt = settings.BinWidth;
-timeData = dt:dt:dt*settings.BinsPerRecord;
+dt = ScalerSettings.BinWidth;
+timeData = dt:dt:dt*ScalerSettings.BinsPerRecord;
 
 figure;hold on
 p(1) = stairs( timeData, countsAccu(:,1) );
@@ -184,6 +222,9 @@ title( 'Trigger Time' )
 %% Output dialog
 waitbar( i/Ntotal, h, 'Done.' )
 disp('Experiment Done!')
+
+pause(1)
+close( h )
 
 end
 
