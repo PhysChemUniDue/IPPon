@@ -48,7 +48,9 @@ data = zeros( obj.BinsPerRecord*1024, Ntotal, 2, 'int16' ) * nan;
 triggerTime = zeros( 1, Ntotal )*nan;
 
 %% Initial shutter status
-% Shutter status equals 1 is open state 0 is closed
+% Shutter status equals 1 is open state 0 is closed. Shutter status is
+% changed at the beginning of the main loop, so the measurement starts with
+% the shutter closed.
 ShutterStatus = 1;
 
 %% Create data acquisition session for shutter control
@@ -59,20 +61,28 @@ s = daq.createSession( 'ni' );
 % Load Channel Definitions
 load( [pwd, '/Settings/ChannelDefinitions.mat'] )
 
-% Add Channels
+% Add Digital Output channel for the shutter
 addDigitalChannel( s, Shutter.Board, Shutter.Channel, 'OutputOnly' );
 
 %% Main Loop
 
+% Create a waitbar
 h = waitbar( 0, 'Initializing...' );
 
 for i=1:Ntotal
     
     % Change Shutter Status
     if ShutterStatus == 1
+        % If the shutter is open, close it
         ShutterStatus = 0;
     else
+        % Otherwise open the shutter
         ShutterStatus = 1;
+        % Reset the counter to it's previous value, so that both for the
+        % blind measurement and the actual measurement there are Nshots
+        % data points. In addition we do not want to skip entries in the
+        % data matrix.
+        i = i-1;
     end
     
     % Apply shutter status
