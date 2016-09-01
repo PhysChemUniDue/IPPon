@@ -77,4 +77,4 @@ SR430.disconnect( g,obj,0 );
 %% Start the experiment
 
 % Execute main function
-[data,p] = mainFunction( Nshots, Ntotal );
+[data,p] = mainFunction( NShots, Ntotal );
