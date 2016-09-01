@@ -1,10 +1,11 @@
-function data = runExperiment( mass, range, Nshots, Ntotal )
-%RUNEXPERIMENT( mass, range ) Starts the IR promoted photodesorption 
+function [data,p] = mainFunction( Nshots, Ntotal )
+%MAINFUNCTION( Nshots, Ntotal ) Starts the IR promoted photodesorption 
 %experiment
-%   mass: Mass of the particle in amu that shall be detected by the QMS
-%   range: Mass range that is set at the QMS control unit (100 or 300 amu)
 %   Nshots: Number of shots that are accumulated per cycle
 %   Ntotal: Number of cycles
+%   
+%   data: Outputs experimental raw data
+%   p: Outputs plots
 
 %% Open put-file dialog
 
@@ -18,13 +19,6 @@ if ~FilterIndex
     data = [];
     return
 end
-
-
-%% Set the mass of the QMS
-
-fprintf( 'Setting QMS311 mass to %g u...\n', mass )
-QMS311.setMass( mass,range )
-fprintf( '\tDone.\n' )
 
 %% Prepare SR430
 
@@ -223,7 +217,7 @@ title( 'Trigger Time' )
 waitbar( i/Ntotal, h, 'Done.' )
 disp('Experiment Done!')
 
-pause(1)
+pause(2)
 close( h )
 
 end
