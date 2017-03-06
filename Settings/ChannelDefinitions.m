@@ -81,6 +81,16 @@ Shutter.Channel = ...
 Shutter.Board = Device02.ID;
 
 
+%% Second Shutter
+
+
+DigitalIOID = 1;
+
+Shutter2.Channel = ...
+    Device02.Subsystems(DigitalIO).ChannelNames{DigitalIOID + 1};
+Shutter2.Board = Device02.ID;
+
+
 
 
 
@@ -90,6 +100,7 @@ Shutter.Board = Device02.ID;
 save( [pwd '/ChannelDefinitions.mat'], ...
     'QMSSet', ...
     'Shutter', ...
+    'Shutter2', ...
     'Temperature' )
 
 %% Cleanup

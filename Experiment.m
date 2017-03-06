@@ -1,5 +1,8 @@
 % IPPON - INFRARED PROMOTED PHOTODESORPTION
-% 
+%
+
+clc,clear,close all
+instrreset
 
 %% Experiment Parameters
 
@@ -7,9 +10,9 @@
 % data from the SR430 and switching the shutter status.
 NShots = 1;
 
-% Ntotal is the total amount of shots which are accumulated for both
+% Ntotal is the total amount of shots which are accumulated for all
 % shutter states.
-Ntotal = 500;
+Ntotal = 1200;
 
 %% QMS311 Parameters
 
@@ -42,7 +45,7 @@ obj.BinsPerRecord = 2;
 % BinWidth selects the internal time base bin width. 0 corresponds to a bin
 % width of 5 ns, 1 corresponds to 40 ns. The bin width is then doubled each
 % time to a maximum value of 10.486 ms at a value of 19.
-obj.BinWidth = 6;
+obj.BinWidth = 4;
 
 % DiscrSlope selects the discriminator slope. 0 selects positive or rising 
 % slope, while 1 selects negative or falling slope.
@@ -50,7 +53,7 @@ obj.DiscrSlope = 0;
 
 % DiscrThreshLevel sets or reads the discriminator threshold level. Minimum
 % Value is -0.300 V, maximum value is 0.300 V. Increment is 0.0002 V.
-obj.DiscrThreshLevel = -0.02;
+obj.DiscrThreshLevel = -0.020;
 
 % RecordsPerScan sets or reads the records per scan. The records per scan 
 % is the number of records which will be accumulated. The records/scan may 
@@ -73,6 +76,7 @@ obj.TriggerSlope = 0;
 
 % Disconnect from the unit
 SR430.disconnect( g,obj,0 );
+
 
 %% Start the experiment
 

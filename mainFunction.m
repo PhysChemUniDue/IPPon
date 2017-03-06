@@ -45,17 +45,20 @@ timeData = dt:dt:ScalerSettings.BinsPerRecord*dt;
 % Set initial value for scan status
 scanStatus = 0;
 
-% Initialize data matrix
-data = zeros( obj.BinsPerRecord*1024, Ntotal, 2, 'int16' ) * nan;
+% Set initial shutter thingy
+ShutterCounter = 1;
 
-% Initialize trigger time array
-triggerTime = zeros( 1, Ntotal*2 )*nan;
+% Set shot counter
+ShotCounter = 0;
+
+% Initialize data matrix
+data = zeros( obj.BinsPerRecord*1024, Ntotal, 3, 'int16' ) * nan;
 
 %% Initial shutter status
-% Shutter status equals 1 is open state 0 is closed. Shutter status is
+% Shutter status equals 0 is open state 1 is closed. Shutter status is
 % changed at the beginning of the main loop, so the measurement starts with
 % the shutter closed.
-ShutterStatus = 1;
+ShutterStatus = [1 1];
 
 %% Create data acquisition session for shutter control
 
@@ -63,22 +66,33 @@ ShutterStatus = 1;
 s = daq.createSession( 'ni' );
 
 % Load Channel Definitions
-load( [pwd, '/Settings/ChannelDefinitions.mat'] )
+try
+    load( [pwd, '/Settings/ChannelDefinitions.mat'] )
+catch
+    disp( 'Could not load the ChannelDefinitions.mat file. You need to be in the Experiments main folder.' )
+    instrreset
+    return
+end
 
-% Add Digital Output channel for the shutter
+% Add Digital Output channel for the shutters
 addDigitalChannel( s, Shutter.Board, Shutter.Channel, 'OutputOnly' );
+addDigitalChannel( s, Shutter2.Board, Shutter2.Channel, 'OutputOnly' );
+% Add counter channel for the Polaris Flashlamp Sync OUT
+addCounterInputChannel(s,'Dev2','ctr0', 'EdgeCount');
 
 %% Prepare figure for live plot
 countsAccu = squeeze( sum( data, 2 ) );
 figure;
-for i=1:2
-    subplot(2,1,i)
+for i=1:3
+    subplot(3,1,i)
     lp(i) = stairs( timeData*1e-6, countsAccu(:,i) );
     xlabel( 'Time [ms]' )
     ylabel( 'Counts' )
     if i==1
+        title( 'Background' )
+    elseif i==2
         title( 'Shutter Closed' )
-    else
+    elseif i==3
         title( 'Shutter Open' )
     end
 end
@@ -88,24 +102,63 @@ end
 % Create a waitbar
 h = waitbar( 0, 'Initializing...' );
 
-for i=1:0.5:Ntotal+1
+% Syncronize the measurement cycle via the Polaris flashlamp. We set a
+% fixed time when the flashlamp fired (this is approximately at the same
+% time the Q-Switch is triggered).
+waitbar( 0, h, 'Synchronizing Flashlamp Trigger...' )
+
+[waitTime,s] = flashSync(s);
+
+% Start timing
+tic
+
+Ntotal = Ntotal*3;
+for i=1:Ntotal
+    % Measurement is here
+    
+    waitbar( i/Ntotal, h, 'Ready...' )
     
     % Change Shutter Status
-    if ShutterStatus == 1
-        % If the shutter is open, close it
-        ShutterStatus = 0;
-    else
-        % Otherwise open the shutter
-        ShutterStatus = 1;
+    if ShutterCounter == 1
+        % Start with UV open
+        ShutterStatus = [0 1];
+        ShutterCounter = 2;
+        % Increment shot counter
+        ShotCounter = ShotCounter+1;
+    elseif ShutterCounter == 2
+        % Background
+        ShutterStatus = [0 0];
+        ShutterCounter = 3;
+    elseif ShutterCounter == 3
+        % UV only again
+        ShutterStatus = [0 1];
+        ShutterCounter = 4;        
+        % Increment shot counter
+        ShotCounter = ShotCounter+1;
+    elseif ShutterCounter == 4
+        % With IR
+        ShutterStatus = [1 1];
+        ShutterCounter = 5;
+        % Increment shot counter
+        ShotCounter = ShotCounter-1;
+    elseif ShutterCounter == 5
+        % Background again
+        ShutterStatus = [0 0];
+        ShutterCounter = 6;        
+        % Increment shot counter
+        ShotCounter = ShotCounter+1;
+    elseif ShutterCounter == 6
+        % And IR
+        ShutterStatus = [1 1];
+        ShutterCounter = 1;        
+        % Increment shot counter
+        ShotCounter = ShotCounter+0;
     end
     
     % Apply shutter status
     outputSingleScan( s, ShutterStatus )
     
-    % Start Scan
-    invoke( obj, 'startScan' );
-    
-    for k=1:2
+    for k=1:3
         % Update live data
         
         % Accumulate counts
@@ -115,9 +168,19 @@ for i=1:0.5:Ntotal+1
         
     end
     
-    waitbar( i/Ntotal, h, 'Ready...' )
+    while toc < waitTime
+        % Wait for appropriate time to start scan
+    end
+    % Start Scan
+    invoke( obj, 'startScan' );
     
+    % Resync flashlamp
+    resetCounters(s)
+    while inputSingleScan(s) < 1
+        % Wait for flashlamp to fire
+    end
     tic
+    
     while scanStatus < Nshots        
         % Wait until scans are finished
         
@@ -125,12 +188,11 @@ for i=1:0.5:Ntotal+1
         scanStatus = invoke( obj, 'scanStatus' );
         % Pausing seems to prevent a timeout of the GPIB connection. Might
         % also be related to the readout malfunction case (see below).
-        pause(0.001)
+        pause(10e-6)
         
     end
-    triggerTime(floor( i )*2-(1-ShutterStatus)) = toc;
     
-    waitbar( i/Ntotal, h, 'Get Data...' )
+    waitbar( i/Ntotal, h, 'Getting Data...' )
     
     % Read data
     [dataAdd] = SR430.readData( obj,ScalerSettings.BinsPerRecord,0 );
@@ -138,7 +200,7 @@ for i=1:0.5:Ntotal+1
         dataAdd = zeros( 1, ScalerSettings.BinsPerRecord );
         disp( 'Readout malfunction' )
     end
-    data(:,floor( i ),ShutterStatus+1) = dataAdd;
+    data(:,ShotCounter,sum(ShutterStatus)+1) = dataAdd;
 
     % Connect and Clear SR430
     invoke( obj, 'clear' );
@@ -148,16 +210,17 @@ for i=1:0.5:Ntotal+1
     
 end
 
-%% Close the shutter when finished
-outputSingleScan( s,0 )
+%% Close the shutters when finished
+outputSingleScan( s,[0 0] )
 
 %% Save
 
 waitbar( i/Ntotal, h, 'Saving...' )
 
 % Save data
-SR430.saveData( data(:,:,1), ScalerSettings, 0, 0, [PathName, 'so_', FileName] )
+SR430.saveData( data(:,:,3), ScalerSettings, 0, 0, [PathName, 'so_', FileName] )
 SR430.saveData( data(:,:,2), ScalerSettings, 0, 0, [PathName, 'sc_', FileName] )
+SR430.saveData( data(:,:,1), ScalerSettings, 0, 0, [PathName, 'bg_', FileName] )
 
 % Disconnect
 disconnect(obj);
@@ -171,49 +234,10 @@ save( [PathName, FileName, '_ExperimentalData.mat' ])
 
 waitbar( i/Ntotal, h, 'Processing...' )
 
-% Sum up all the counts for each singe shot
-countsSum = zeros( Ntotal,2 );
-for j=1:2
-    % Loop throught shutter states
-    for i=1:Ntotal
-        % Loop through shot number
-        
-        countsSum(i,j) = sum( data(:,i,j) );
-        
-    end
-    
-end
+ipponProcess( data, Ntotal, ScalerSettings )
 
-countsAccu = squeeze( sum( data, 2 ) );
+%% Close things
 
-% Generate time data from bin width
-dt = ScalerSettings.BinWidth;
-timeData = dt:dt:dt*ScalerSettings.BinsPerRecord;
-
-figure;hold on
-p(1) = stairs( timeData, countsAccu(:,1) );
-p(1).DisplayName = 'Shutter Open';
-p(2) = stairs( timeData, countsAccu(:,2) );
-p(2).DisplayName = 'Shutter Closed';
-xlabel( 'Time [ms]' )
-ylabel( 'Counts' )
-title( 'Accumulated Signal' )
-legend( 'show' )
-
-figure; hold on
-p(3:4) = plot( countsSum, 'o' );
-xlabel( 'Shot Number' )
-ylabel( 'Total Counts' )
-title( 'Integral per Shot' )
-
-figure
-p(5) = plot( triggerTime, 'o-' );
-p(5).DisplayName = 'Trigger Time';
-xlabel( 'Shot Number' )
-ylabel( 'Time Waited for Trigger [s]' )
-title( 'Trigger Time' )
-
-%% Output dialog
 waitbar( i/Ntotal, h, 'Done.' )
 disp('Experiment Done!')
 
