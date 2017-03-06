@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MATLABInstrumentDriver>
+   <FileVersion>2.42</FileVersion>
+   <DriverName>E:\Experimental\MATLAB-Programme\+DG535\srs_dg535.mdd</DriverName>
+   <DriverType>MATLAB interface object</DriverType>
+   <InstrumentType>Digital Delay/Pulse Generator</InstrumentType>
+   <InstrumentManufacturer>Stanford Research Systems</InstrumentManufacturer>
+   <InstrumentModel>DG535</InstrumentModel>
+   <InstrumentVersion>1.0</InstrumentVersion>
+   <Identify/>
+   <Reset>CL</Reset>
+   <Selftest/>
+   <Error>ES</Error>
+   <CreateInitCode>
+      <Code>function init(obj)
+% This function is called after the object is created.
+% OBJ is the device object.
+% End of function definition - DO NOT EDIT
+</Code>
+   </CreateInitCode>
+   <ConnectInitCode>
+      <Type>InstrumentCommand</Type>
+   </ConnectInitCode>
+   <CleanupCode>
+      <Type>InstrumentCommand</Type>
+   </CleanupCode>
+   <GroupInfo>
+      <Group>
+         <Name>parent</Name>
+         <Description/>
+         <Command/>
+         <Size>1</Size>
+         <Mappings>
+            <ChannelMap Command="parent1" Index="1"/>
+         </Mappings>
+         <PropertyInfo>
+            <Property>
+               <Name>ErrorStatus</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <ConfigureCommand/>
+                     <QueryCommand>ES</QueryCommand>
+                  </Commands>
+               </Code>
+               <PermissibleType>
+                  <Type>Double</Type>
+                  <Constraint>none</Constraint>
+               </PermissibleType>
+               <DefaultValue/>
+               <ReadOnly>never</ReadOnly>
+               <Description/>
+            </Property>
+         </PropertyInfo>
+         <MethodInfo>
+            <Method>
+               <Name>clear</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="CL" Output="false"/>
+                  </Commands>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>delayTime</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>MCode</Type>
+               <Code>
+                  <MCode>function delayTime(obj,k,j,t)
+% For group functions, OBJ is the group object. For
+% base device functions, OBJ is the device object.
+
+g = get( obj, 'Interface' );
+
+if isstr( k ) || isstr( j )
+    if k=='A'
+        k = 2;
+    elseif k=='B'
+        k = 3;
+    elseif k=='C'
+        k = 4;
+    elseif k=='D'
+        k = 5;
+    end
+    
+    if j=='T0'
+        j = 1;
+    elseif j=='A'
+        j = 2;
+    elseif j=='B'
+        j = 3;
+    elseif j=='C'
+        j = 4;
+    elseif j=='D'
+        j = 5;
+    end
+    
+end
+
+str = sprintf( 'DT %g,%g,%g', k,j,t );
+
+fprintf( g, str )</MCode>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>display</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>MCode</Type>
+               <Code>
+                  <MCode>function display(obj,str)
+% For group functions, OBJ is the group object. For
+% base device functions, OBJ is the device object.
+
+g = get( obj, 'Interface' );
+
+fprintf( g, ['DS ', str] )</MCode>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>error</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="ES" Format="numeric" Output="true" ReadOutputAs="ASCII"/>
+                     <Input>i</Input>
+                  </Commands>
+               </Code>
+               <Description/>
+            </Method>
+            <Method>
+               <Name>status</Name>
+               <Location>parent</Location>
+               <CapabilityGroup>Base</CapabilityGroup>
+               <Type>InstrumentCommand</Type>
+               <Code>
+                  <Commands>
+                     <Line Command="IS" Format="numeric" Output="true" ReadOutputAs="ASCII"/>
+                     <Input>i</Input>
+                  </Commands>
+               </Code>
+               <Description/>
+            </Method>
+         </MethodInfo>
+      </Group>
+   </GroupInfo>
+</MATLABInstrumentDriver>

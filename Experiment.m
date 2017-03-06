@@ -77,8 +77,13 @@ obj.TriggerSlope = 0;
 % Disconnect from the unit
 SR430.disconnect( g,obj,0 );
 
+%% DG535 Parameters
+
+% Specify delay times
+delayTimes = [104:115, 104:115]*1e-9;
+
 
 %% Start the experiment
 
 % Execute main function
-[data,p] = mainFunction( NShots, Ntotal );
+[data,p] = mainFunction( NShots, Ntotal, delayTimes );
